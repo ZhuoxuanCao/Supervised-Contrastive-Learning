@@ -6,3 +6,4 @@ from .model_5_ResNet50 import ResNet50
 from .model_6_ResNet101 import ResNet101
 from .model_7_ResNet200 import ResNet200
 from .model_8_CSPDarknet53 import CSPDarknet53Classifier
+from .SupConResNet import SupConResNetFactory

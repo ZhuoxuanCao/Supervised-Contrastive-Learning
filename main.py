@@ -31,8 +31,8 @@ def main():
     # 训练循环
     for epoch in range(opt['epochs']):
         print(f"Epoch [{epoch + 1}/{opt['epochs']}]")
-        epoch_loss, epoch_accuracy = train(train_loader, model, criterion, optimizer, opt, device)
-        print(f"Train Loss: {epoch_loss:.4f}, Train Accuracy: {epoch_accuracy:.4f}")
+        epoch_loss = train(train_loader, model, criterion, optimizer, opt, device)
+        print(f"Train Loss: {epoch_loss:.4f}")
 
         # 保存检查点
         if (epoch + 1) % opt['save_freq'] == 0 or (epoch + 1) == opt['epochs']:

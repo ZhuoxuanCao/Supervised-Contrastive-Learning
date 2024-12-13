@@ -9,7 +9,7 @@ from torch.utils.tensorboard import SummaryWriter
 from losses import SupConLoss_in, SupConLoss_out, CrossEntropyLoss
 
 from models import ResModel, ResNet34, ResNeXt101_32x8d, WideResNet_28_10, ResNet50, ResNet101, ResNet200, \
-    CSPDarknet53Classifier
+    CSPDarknet53Classifier, SupConResNetFactory
 
 from data_augmentation.data_augmentation_1 import TwoCropTransform, get_base_transform
 
@@ -44,10 +44,10 @@ def set_loader(opt):
 
 def set_model(opt):
     model_dict = {
-        'ResNet34': ResNet34(num_classes=opt['num_classes']),
-        'ResNet50': ResNet50(num_classes=opt['num_classes']),
-        'ResNet101': ResNet101(num_classes=opt['num_classes']),
-        'ResNet200': ResNet200(num_classes=opt['num_classes']),
+        'ResNet34': lambda: ResNet34(num_classes=opt['num_classes']), # 确保是实例化后的模型
+        'ResNet50': lambda: ResNet50(num_classes=opt['num_classes']),
+        'ResNet101': lambda: ResNet101(num_classes=opt['num_classes']),
+        'ResNet200': lambda: ResNet200(num_classes=opt['num_classes']),
 
 
         # 先只关注基础的resnet模型
@@ -56,9 +56,16 @@ def set_model(opt):
 
 
     }
-    model = model_dict.get(opt['model_type'])
-    if model is None:
+    base_model_func = model_dict.get(opt['model_type'])
+    if base_model_func is None:
         raise ValueError(f"Unknown model type: {opt['model_type']}")
+
+    # 使用指定的 ResNet 变体初始化 SupConResNet
+    model = SupConResNetFactory(
+        base_model_func=base_model_func,
+        feature_dim=opt.get("feature_dim", 128),  # 默认特征维度为 128
+        # dim_in=512
+    )
 
     device = torch.device(f"cuda:{opt['gpu']}" if torch.cuda.is_available() and opt['gpu'] is not None else "cpu")
     model = model.to(device)
@@ -137,10 +144,10 @@ def train(train_loader, model, criterion, optimizer, opt, device):
         # 累加损失
         running_loss += loss.item()
 
-        # 准确率计算（使用 f1）
-        _, predicted = f1.max(1)
-        correct += (predicted == labels[:f1.size(0)]).sum().item()  # 截取标签匹配特征大小
-        total += labels.size(0) // 2  # 原始标签大小
+        # # 准确率计算（使用 f1）
+        # _, predicted = f1.max(1)
+        # correct += (predicted == labels[:f1.size(0)]).sum().item()  # 截取标签匹配特征大小
+        # total += labels.size(0) // 2  # 原始标签大小
 
         # 打印训练进度
         if (step + 1) % 100 == 0:
@@ -149,8 +156,8 @@ def train(train_loader, model, criterion, optimizer, opt, device):
 
     # 返回损失和准确率
     epoch_loss = running_loss / len(train_loader)
-    epoch_accuracy = correct / total
-    return epoch_loss, epoch_accuracy
+    # epoch_accuracy = correct / total
+    return epoch_loss
 
 
 
