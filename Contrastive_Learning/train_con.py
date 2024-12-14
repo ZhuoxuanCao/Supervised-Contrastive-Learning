@@ -89,21 +89,21 @@ def adjust_learning_rate(optimizer, epoch, opt):
             param_group['lr'] *= 0.5
 
 
-def calculate_accuracy(features, labels):
-    """
-    计算预测的准确率。
-
-    Args:
-        features (torch.Tensor): 模型的输出张量，通常是 logits。
-        labels (torch.Tensor): 真实的标签。
-
-    Returns:
-        tuple: (正确预测的样本数量, 总样本数量)
-    """
-    _, predicted = features.max(1)  # 获取每个样本的预测类别
-    correct = (predicted == labels).sum().item()  # 统计预测正确的样本数
-    total = labels.size(0)  # 总样本数
-    return correct, total
+# def calculate_accuracy(features: object, labels: object) -> object:
+#     """
+#     计算预测的准确率。
+#
+#     Args:
+#         features (torch.Tensor): 模型的输出张量，通常是 logits。
+#         labels (torch.Tensor): 真实的标签。
+#
+#     Returns:
+#         tuple: (正确预测的样本数量, 总样本数量)
+#     """
+#     _, predicted = features.max(1)  # 获取每个样本的预测类别
+#     correct = (predicted == labels).sum().item()  # 统计预测正确的样本数
+#     total = labels.size(0)  # 总样本数
+#     return correct, total
 
 
 

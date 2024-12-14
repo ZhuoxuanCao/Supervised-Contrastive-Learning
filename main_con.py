@@ -1,51 +1,3 @@
-# import os
-# import torch
-# from Contrastive_Learning import config_con  # 配置模块
-# from Contrastive_Learning import train, set_loader, set_model
-#
-# def main():
-#     # 从配置文件获取配置
-#     opt = config_con.get_config()
-#
-#     # 创建日志目录和模型保存目录
-#     log_dir = opt['log_dir']
-#     model_save_dir = opt['model_save_dir']
-#
-#     if not os.path.exists(log_dir):
-#         os.makedirs(log_dir)
-#
-#     if not os.path.exists(model_save_dir):
-#         os.makedirs(model_save_dir)
-#
-#     # 创建数据加载器和模型
-#     train_loader, test_loader = set_loader(opt)
-#     model, criterion, device = set_model(opt)
-#
-#     optimizer = torch.optim.SGD(
-#         model.parameters(),
-#         lr=opt['learning_rate'],
-#         momentum=0.9,
-#         weight_decay=1e-4,
-#     )
-#
-#     # 训练循环
-#     for epoch in range(opt['epochs']):
-#         print(f"Epoch [{epoch + 1}/{opt['epochs']}]")
-#         epoch_loss = train(train_loader, model, criterion, optimizer, opt, device)
-#         print(f"Train Loss: {epoch_loss:.4f}")
-#
-#         # 保存检查点
-#         if (epoch + 1) % opt['save_freq'] == 0 or (epoch + 1) == opt['epochs']:
-#             checkpoint_path = os.path.join(opt['model_save_dir'], f"checkpoint_epoch_{epoch + 1}.pth")
-#             torch.save(model.state_dict(), checkpoint_path)
-#             print(f"Checkpoint saved to {checkpoint_path}")
-#
-#     print("Training complete.")
-#
-# if __name__ == "__main__":
-#     main()
-
-
 import os
 import torch
 from Contrastive_Learning import config_con  # 配置模块
@@ -61,9 +13,9 @@ def ensure_dir_exists(path):
         print(f"Created directory: {path}")
 
 
-def save_pretrained_model(model, save_dir, epoch, opt):
+def save_pretrained_model(model, save_dir, epoch, opt, last_save_path=None):
     """
-    Save the pre-trained model and additional metadata.
+    Save the pre-trained model and additional metadata. Optionally remove the previous model.
     """
     save_path = os.path.join(save_dir, f"{opt['model_type']}_epoch_{epoch}.pth")
     torch.save({
@@ -71,6 +23,13 @@ def save_pretrained_model(model, save_dir, epoch, opt):
         "config": opt,  # 保存训练时的超参数配置
     }, save_path)
     print(f"New best model saved to {save_path}")
+
+    # 删除上一次保存的模型文件（如果存在）
+    if last_save_path and os.path.exists(last_save_path):
+        os.remove(last_save_path)
+        print(f"Deleted previous model: {last_save_path}")
+
+    return save_path  # 返回当前保存的文件路径
 
 
 def main():
@@ -95,6 +54,7 @@ def main():
     # 初始化最小损失和最佳模型信息
     best_loss = float("inf")  # 初始值为正无穷
     best_epoch = -1
+    last_save_path = None  # 用于记录上一次保存的模型路径
 
     # 训练循环
     for epoch in range(opt['epochs']):
@@ -106,7 +66,7 @@ def main():
         if epoch_loss < best_loss:
             best_loss = epoch_loss
             best_epoch = epoch + 1
-            save_pretrained_model(model, pretrain_dir, best_epoch, opt)
+            last_save_path = save_pretrained_model(model, pretrain_dir, best_epoch, opt, last_save_path)
 
     print(f"Training complete. Best model at epoch {best_epoch} with loss {best_loss:.4f}.")
 
