@@ -1,7 +1,7 @@
 import os
 import torch
-import config_con  # 配置模块
-from train_con import train, set_loader, set_model
+from Contrastive_Learning import config_con  # 配置模块
+from Contrastive_Learning import train, set_loader, set_model
 
 def main():
     # 从配置文件获取配置
