@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.init as init
 
 def initialize_weights(module):
-    """对卷积层和全连接层进行 He 初始化"""
     if isinstance(module, nn.Conv2d):
         init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
         if module.bias is not None:
@@ -12,6 +11,9 @@ def initialize_weights(module):
         init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
         if module.bias is not None:
             init.constant_(module.bias, 0)
+    elif isinstance(module, nn.BatchNorm2d):
+        init.constant_(module.weight, 1)  # 将 BatchNorm 的权重初始化为 1
+        init.constant_(module.bias, 0)    # 将偏置初始化为 0
 
 class Bottleneck(nn.Module):
     expansion = 4
@@ -56,7 +58,7 @@ class ResNet101(nn.Module):
     def __init__(self, num_classes=10):
         super(ResNet101, self).__init__()
         self.in_channels = 64
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -68,6 +70,10 @@ class ResNet101(nn.Module):
 
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * Bottleneck.expansion, num_classes)
+
+        # 应用权重初始化
+        self.apply(initialize_weights)
+
 
     def _make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None

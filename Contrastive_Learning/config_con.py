@@ -60,3 +60,7 @@ def parse_option():
 
 def get_config():
     return parse_option()
+
+if __name__ == "__main__":
+    opt = get_config()
+    print(opt)

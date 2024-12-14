@@ -5,5 +5,5 @@ from .model_4_WideResNet_28_10 import WideResNet_28_10
 from .model_5_ResNet50 import ResNet50
 from .model_6_ResNet101 import ResNet101
 from .model_7_ResNet200 import ResNet200
-from .model_8_CSPDarknet53 import CSPDarknet53Classifier
-from .SupConResNet import SupConResNetFactory
+from .model_8_CSPDarknet53 import CSPDarknet53
+from .SupConResNet import SupConResNetFactory, SupConResNetFactory_CSPDarknet53

@@ -73,26 +73,24 @@ def SupConResNetFactory(base_model_func, feature_dim=128):
     dim_in = determine_feature_dim(base_model)  # 动态确定特征维度
     return SupConResNet(base_model, feature_dim, dim_in)
 
+def SupConResNetFactory_CSPDarknet53(base_model_func=None, feature_dim=128):
+    """
+    Factory function to create SupConResNet models based on various backbone models.
+    """
+    if base_model_func is None:
+        raise ValueError("base_model_func must be provided.")
 
-# def SupConResNetFactory(base_model_func, feature_dim=128, dim_in=None):
-#     """
-#     Factory function to create SupConResNet models based on ResNet variants.
-#     Args:
-#         base_model_func (callable): A callable that returns a ResNet model (e.g., ResNet50, ResNet101).
-#         feature_dim (int): Output feature dimension of the projection head.
-#         dim_in (int): Input feature dimension for the projection head.
-#                       Defaults to 512 for ResNet34 and 2048 for ResNet50/101/200.
-#     Returns:
-#         SupConResNet: A SupConResNet model with a projection head.
-#     """
-#     # Create the base model, ensure base_model_func is instantiated correctly
-#     base_model = base_model_func() if callable(base_model_func) else base_model_func
-#
-#     base_model.fc = nn.Identity()  # Remove classification head
-#
-#     if dim_in is None:
-#         # Infer feature dimension based on ResNet variant
-#         # dim_in = 512 if base_model_func.__name__ == "ResNet34" else 2048
-#         dim_in = 512 if base_model_func.__name__ == "ResNet34" else 2048
-#     base_model.fc = nn.Identity()  # Remove the classification head
-#     return SupConResNet(base_model, feature_dim, dim_in)
+    # Initialize the backbone
+    base_model = base_model_func()
+    base_model.fc = nn.Identity()  # Remove classification head
+    base_model.avgpool = nn.Identity()  # Remove final pooling
+
+    # Dynamically determine feature dimensions
+    with torch.no_grad():
+        dummy_input = torch.randn(1, 3, 32, 32)  # For CIFAR-like input
+        features = base_model(dummy_input)
+        feature_dim_in = features.shape[1]
+
+    return SupConResNet(base_model, feature_dim=feature_dim, dim_in=feature_dim_in)
+
+
