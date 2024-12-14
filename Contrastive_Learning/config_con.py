@@ -36,7 +36,10 @@ def parse_option():
     # 数据增强方法，选择数据增强模式
     parser.add_argument('--augmentation', type=str, default='basic',
                         help='Data augmentation method (e.g., basic, advanced)')
+    # 输入分辨率
+    parser.add_argument('--input_resolution', type=int, default=32, help='Input image resolution')
 
+    parser.add_argument('--feature_dim', type=int, default=128, help='Feature dimension for the projection head')
     # class_name参数通常用于指定数据集中具体的类标签，尤其是在多分类任务中需要对特定类别进行操作时会用到。
     # parser.add_argument('--class_name', type=str, default='default_class', help='Class name for dataset')
     # action_type参数可以用来指定代码的执行模式（如train、test、inference等），这样可以在一个脚本中实现不同的功能

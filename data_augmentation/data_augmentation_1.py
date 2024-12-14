@@ -1,4 +1,3 @@
-# data_augmentation.py
 from torchvision import transforms
 
 class TwoCropTransform:
@@ -9,13 +8,18 @@ class TwoCropTransform:
     def __call__(self, x):
         return [self.base_transform(x), self.base_transform(x)]
 
-# 定义基本的数据增强组合
-def get_base_transform():
+def get_base_transform(input_resolution=32):
+    """
+    定义基本的数据增强组合，支持动态输入分辨率。
+    Args:
+        input_resolution (int): 输入图像的分辨率（默认32）。
+    """
     return transforms.Compose([
-        transforms.RandomResizedCrop(32, scale=(0.2, 1.0)),
+        transforms.RandomResizedCrop(input_resolution, scale=(0.2, 1.0)),  # 动态分辨率
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),
-        transforms.RandomGrayscale(p=0.2),
+        transforms.ColorJitter(0.4, 0.4, 0.4, 0.1),  # 颜色抖动
+        transforms.RandomGrayscale(p=0.2),           # 随机灰度
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
+

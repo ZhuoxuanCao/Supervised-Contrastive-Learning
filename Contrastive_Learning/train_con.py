@@ -50,25 +50,18 @@ class LARS(Optimizer):
         return loss
 
 
+# 数据加载器
 def set_loader(opt):
-    if opt['augmentation'] == 'basic':
-        transform = TwoCropTransform(get_base_transform())
-    else:
-        raise ValueError(f"Unknown augmentation type: {opt['augmentation']}")
-
-    # 根据数据集名称选择数据集
+    transform = TwoCropTransform(get_base_transform(opt['input_resolution']))
     if opt['dataset_name'] == 'cifar10':
         train_dataset = datasets.CIFAR10(root=opt['dataset'], train=True, download=False, transform=transform)
-        test_dataset = datasets.CIFAR10(root=opt['dataset'], train=False, download=True, transform=transform)
     elif opt['dataset_name'] == 'cifar100':
         train_dataset = datasets.CIFAR100(root=opt['dataset'], train=True, download=False, transform=transform)
-        test_dataset = datasets.CIFAR100(root=opt['dataset'], train=False, download=True, transform=transform)
     else:
         raise ValueError(f"Unknown dataset: {opt['dataset_name']}")
 
     train_loader = DataLoader(train_dataset, batch_size=opt['batch_size'], shuffle=True, num_workers=2)
-    test_loader = DataLoader(test_dataset, batch_size=opt['batch_size'], shuffle=False, num_workers=2)
-    return train_loader, test_loader
+    return train_loader
 
 
 def set_model(opt):
@@ -89,13 +82,13 @@ def set_model(opt):
         # 使用新的 SupConResNetFactory_CSPDarknet53
         model = SupConResNetFactory_CSPDarknet53(
             base_model_func=base_model_func,
-            feature_dim=opt.get("feature_dim", 128),
+            feature_dim=opt['feature_dim'],
         )
     else:
         # 使用旧的 SupConResNetFactory
         model = SupConResNetFactory(
             base_model_func=base_model_func,
-            feature_dim=opt.get("feature_dim", 128),
+            feature_dim=opt['feature_dim'],
         )
 
     device = torch.device(f"cuda:{opt['gpu']}" if torch.cuda.is_available() and opt['gpu'] is not None else "cpu")
@@ -121,15 +114,52 @@ def create_scheduler(optimizer, warmup_epochs, total_epochs):
     def lr_lambda(epoch):
         if epoch < warmup_epochs:
             return (epoch + 1) / warmup_epochs
-        else:
-            return 0.5 * (1 + math.cos((epoch - warmup_epochs) / (total_epochs - warmup_epochs) * math.pi))
-    scheduler = LambdaLR(optimizer, lr_lambda)
-    return scheduler
+        return 0.5 * (1 + math.cos((epoch - warmup_epochs) / (total_epochs - warmup_epochs) * math.pi))
+    return LambdaLR(optimizer, lr_lambda)
 
 
-def train(train_loader, model, criterion, optimizer, opt, device):
+# 模型保存
+def save_model(model, opt, epoch, loss, save_root):
+    """
+    保存模型到指定的文件夹，按模型类型分类管理。
+    Args:
+        model: 需要保存的模型。
+        opt: 配置字典，包含超参数信息。
+        epoch: 当前训练轮次。
+        loss: 当前训练轮次的损失。
+        save_root: 保存模型的根目录。
+    """
+    # 构造模型类型的子目录
+    model_dir = os.path.join(save_root, opt['model_type'])
+
+    # 确保目标目录存在
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)  # 自动创建目录
+        print(f"Created directory: {model_dir}")
+
+    # 构造保存路径
+    save_path = os.path.join(
+        model_dir,
+        f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_res{opt['input_resolution']}_epoch{epoch}_loss{loss:.4f}.pth"
+    )
+
+    # 保存模型
+    torch.save({
+        "model_state_dict": model.state_dict(),
+        "config": opt  # 保存超参数配置
+    }, save_path)
+
+    print(f"Model saved to {save_path}")
+
+
+# 训练函数
+def train(train_loader, model, criterion, optimizer, opt, device, epoch=None):
     model.train()
     running_loss = 0.0
+    total_steps = len(train_loader)  # 总步数
+
+    # 打印阶段信息
+    print(f"Start training: Epoch [{epoch + 1}/{opt['epochs']}]") if epoch is not None else None
 
     for step, (inputs, labels) in enumerate(train_loader):
         # 数据预处理
@@ -159,12 +189,21 @@ def train(train_loader, model, criterion, optimizer, opt, device):
         # 累加损失
         running_loss += loss.item()
 
-        # 打印训练进度
-        if (step + 1) % 100 == 0:
-            print(f"Step [{step + 1}/{len(train_loader)}], Loss: {running_loss / (step + 1):.4f}")
+        # 打印阶段性训练进度信息
+        if (step + 1) % 100 == 0 or (step + 1) == total_steps:
+            avg_loss = running_loss / (step + 1)
+            print(f"Step [{step + 1}/{total_steps}], Loss: {avg_loss:.4f}")
 
     # 返回损失
     epoch_loss = running_loss / len(train_loader)
+
+    # 阶段性输出
+    if epoch is not None and (epoch + 1) % 5 == 0:
+        print(f"--- Summary for Epoch [{epoch + 1}] ---")
+        print(f"    Average Loss: {epoch_loss:.4f}")
+        print(f"    Learning Rate: {optimizer.param_groups[0]['lr']:.6f}")
+
     return epoch_loss
+
 
 
