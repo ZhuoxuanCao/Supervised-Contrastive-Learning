@@ -1,9 +1,9 @@
 ## 代码结构
 -Contrastive_Learning/：包含与对比学习相关的代码。
  - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
- - 
+   
  - config_con.py：该文件是配置文件，包含对比学习训练过程中的参数设置。
- - 
+   
  - train_con.py：该文件实现了监督式对比学习的训练过程。
 
 - data_augmentation/：包含数据增强的相关代码，用于在训练过程中对输入数据进行预处理。
@@ -22,17 +22,17 @@
       - ResNet34/：该目录保存了，使用 ResNet34 进行监督式对比学习训练后的权重
       - ResNet101/：该目录保存了，使用 ResNet101 进行监督式对比学习训练后的权重
   
-environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
+- environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
 
-main_con.py：对比学习的主程序入口，负责解析config_con.py命令行参数，并调用相应的训练和测试函数。
+- main_con.py：对比学习的主程序入口，负责解析config_con.py命令行参数，并调用相应的训练和测试函数。
 
-test_classifier.py：用于测试分类器性能的代码，评估模型在测试集上的表现(暂时用不上)。
+- test_classifier.py：用于测试分类器性能的代码，评估模型在测试集上的表现(暂时用不上)。
 
-train_pretrained_classifier.py：用于训练预训练分类器的代码，加载预训练模型并进行微调。
+- train_pretrained_classifier.py：用于训练预训练分类器的代码，加载预训练模型并进行微调。
 
-train_scratch_classifier.py：用于从头开始训练分类器的代码，初始化模型并进行训练，用于和训练预训练分类器的性能做对比。
+- train_scratch_classifier.py：用于从头开始训练分类器的代码，初始化模型并进行训练，用于和训练预训练分类器的性能做对比。
 
-utils.py：包含辅助函数，如数据加载、模型保存和日志记录等功能（用不上）。
+- utils.py：包含辅助函数，如数据加载、模型保存和日志记录等功能（用不上）。
 
 
 ## 参数解释
