@@ -1,26 +1,26 @@
-对比学习相关的代码都在contrastive Learning文件夹里面
+## 代码结构
+-Contrastive_Learning/：包含与对比学习相关的代码。
+ - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
+ - 
+ - config_con.py：该文件是配置文件，包含对比学习训练过程中的参数设置。
+ - 
+ - train_con.py：该文件实现了监督式对比学习的训练过程。
 
-# 代码结构
-Contrastive_Learning/：包含与对比学习相关的代码。
-- init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
-- config_con.py：该文件是配置文件，包含对比学习训练过程中的参数设置。
-- train_con.py：该文件实现了监督式对比学习的训练过程。
+- data_augmentation/：包含数据增强的相关代码，用于在训练过程中对输入数据进行预处理。
 
-data_augmentation/：包含数据增强的相关代码，用于在训练过程中对输入数据进行预处理。
+- losses/：定义了损失函数，supin和supout。
 
-losses/：定义了损失函数，supin和supout。
+- models/：存放用于测试的模型代码，包括不同架构的神经网络模型定义，以及MLP的实现。
 
-models/：存放用于测试的模型代码，包括不同架构的神经网络模型定义，以及MLP的实现。
+- my_logs/：用于存储训练过程中的日志信息，便于跟踪和分析模型的训练情况。
 
-my_logs/：用于存储训练过程中的日志信息，便于跟踪和分析模型的训练情况。
-
-saved_models/：用于保存训练后的模型，便于后续加载和评估。
-  - classification/：该目录保存了用于分类任务的模型权重
-    - pretrain/：该目录保存了，经过对比学习预训练的分类任务模型
-    - scratch/：该目录保存了，从头开始，未经过预训练的分类任务模型
-  - pretraining/：该目录保存了经过对比监督学习的预训练权重
-    - ResNet34/：该目录保存了，使用 ResNet34 进行监督式对比学习训练后的权重
-    - ResNet101/：该目录保存了，使用 ResNet101 进行监督式对比学习训练后的权重
+- saved_models/：用于保存训练后的模型，便于后续加载和评估。
+    - classification/：该目录保存了用于分类任务的模型权重
+      - pretrain/：该目录保存了，经过对比学习预训练的分类任务模型
+      - scratch/：该目录保存了，从头开始，未经过预训练的分类任务模型
+    - pretraining/：该目录保存了经过对比监督学习的预训练权重
+      - ResNet34/：该目录保存了，使用 ResNet34 进行监督式对比学习训练后的权重
+      - ResNet101/：该目录保存了，使用 ResNet101 进行监督式对比学习训练后的权重
   
 environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
 
