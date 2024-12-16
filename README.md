@@ -16,8 +16,8 @@ my_logs/：用于存储训练过程中的日志信息，便于跟踪和分析模
 
 saved_models/：用于保存训练后的模型，便于后续加载和评估。
 - classification/：该目录保存了用于分类任务的模型权重
-    -pretrain/
-    -scratch/
+- - pretrain/
+- - scratch/
 - pretraining/：该目录保存了经过对比监督学习的预训练权重
 
 environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
