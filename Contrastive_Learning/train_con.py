@@ -165,25 +165,7 @@ def create_scheduler(optimizer, warmup_epochs, total_epochs):
     return LambdaLR(optimizer, lr_lambda)
 
 
-# def save_model(model, opt, epoch, loss, save_root):
-#     """
-#     保存模型到指定的文件夹，按模型类型分类管理。
-#     """
-#     model_dir = os.path.join(save_root, opt['model_type'])
-#     os.makedirs(model_dir, exist_ok=True)
-#
-#     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-#     save_path = os.path.join(
-#         model_dir,
-#         f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_batch{opt['batch_size']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
-#     )
-#
-#     torch.save({
-#         "model_state_dict": model.state_dict(),
-#         "config": opt
-#     }, save_path)
-#
-#     print(f"Model saved to {save_path}")
+
 
 def save_best_model(model, opt, epoch, loss, save_root, best_loss, last_save_path):
     """
@@ -305,6 +287,7 @@ def train(train_loader, model, criterion, optimizer, opt, device, epoch=None):
     # # 保存性能最佳的模型并删除旧模型
     # save_root = "./saved_models/pretraining"
     # best_loss, last_save_path = save_best_model(model, opt, epoch, epoch_loss, save_root, best_loss, last_save_path)
+
 
     # 更新 opt 中的状态
     opt["best_loss"] = best_loss
