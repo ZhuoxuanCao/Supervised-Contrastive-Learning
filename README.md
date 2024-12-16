@@ -28,8 +28,10 @@
 
 - main_con.py：对比学习的主程序入口，负责解析config_con.py命令行参数，并调用相应的训练和测试函数。
 
-- test_classifier.py：用于测试分类器性能的代码，评估模型在测试集上的表现(暂时用不上)。
+- test_pretrained_classifier.py：用于测试经过预训练的分类器性能的代码，评估模型在测试集上的表现。
 
+- test_scratch_classifier.py：用于测试直接训练的分类器性能的代码，评估模型在测试集上的表现。
+  
 - train_pretrained_classifier.py：用于训练预训练分类器的代码，加载预训练模型并进行微调。
 
 - train_scratch_classifier.py：用于从头开始训练分类器的代码，初始化模型并进行训练，用于和训练预训练分类器的性能做对比。
