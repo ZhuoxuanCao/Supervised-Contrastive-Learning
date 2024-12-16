@@ -61,8 +61,10 @@
 #### 2.1.2 示例运行指令  
 完整的示例运行指令，参数可以按需求修改：
 ```bash
-python main_con.py --batch_size 32 --learning_rate 0.01 --epochs 2 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supout --input_resolution 32 --feature_dim 128 --num_workers 2
+python main_con.py --batch_size 32 --learning_rate 0.01 --epochs 2 --temp 0.1 --log_dir ./my_logs --model_save_dir ./saved_models\pretraining --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supout --input_resolution 32 --feature_dim 128 --num_workers 2
 ```
+
+
 ### 2.2 使用对比学习预训练的权重，进行分类训练
 
 #### 2.2.1 参数说明 
@@ -80,7 +82,7 @@ python main_con.py --batch_size 32 --learning_rate 0.01 --epochs 2 --temp 0.1 --
 #### 2.2.2 示例运行指令 
 
 ```bash
-python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 3 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
+python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification/pretrained --batch_size 32 --epochs 3 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
 ```
 
 ### 2.3 从头开始的分类器训练
