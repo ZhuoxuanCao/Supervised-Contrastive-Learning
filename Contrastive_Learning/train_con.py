@@ -72,9 +72,9 @@ class LARS(Optimizer):
 def set_loader(opt):
     transform = TwoCropTransform(get_base_transform(opt['input_resolution']))
     if opt['dataset_name'] == 'cifar10':
-        train_dataset = datasets.CIFAR10(root=opt['dataset'], train=True, download=False, transform=transform)
+        train_dataset = datasets.CIFAR10(root=opt['dataset'], train=True, download=True, transform=transform)
     elif opt['dataset_name'] == 'cifar100':
-        train_dataset = datasets.CIFAR100(root=opt['dataset'], train=True, download=False, transform=transform)
+        train_dataset = datasets.CIFAR100(root=opt['dataset'], train=True, download=True, transform=transform)
     elif opt['dataset_name'] == 'imagenet':
         train_dataset = datasets.ImageFolder(root=opt['dataset'], transform=transform)
     else:

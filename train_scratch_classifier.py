@@ -5,6 +5,7 @@ from tqdm import tqdm  # 用于显示进度条
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
+from torchvision.transforms import AutoAugment, AutoAugmentPolicy
 from models import ResNet34, ResNet50, ResNet101, ResNet200
 import os
 import datetime
@@ -134,8 +135,9 @@ def main():
     # Dataset loading
     if args.dataset_name == "cifar10":
         transform = transforms.Compose([
-            transforms.RandomResizedCrop(32),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomResizedCrop(32),
+            # transforms.RandomHorizontalFlip(),
+            AutoAugment(AutoAugmentPolicy.CIFAR10),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
@@ -186,8 +188,22 @@ def main():
     model = base_model_func().to(device)
 
     # Optimizer and scheduler
-    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+    # optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
+    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+    optimizer = optim.AdamW(
+        model.parameters(),
+        lr=args.learning_rate,  # 学习率，与 SGD 的默认值可能不同，建议适当减小
+        betas=(0.9, 0.999),  # 默认 AdamW 参数
+        eps=1e-8,  # 防止数值不稳定
+        weight_decay=5e-4  # 权重衰减
+    )
+
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=args.epochs  # Cosine退火周期与总训练 epoch 对应
+    )
+
+
 
     # Loss function
     criterion = nn.CrossEntropyLoss()
@@ -201,4 +217,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python train_scratch_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar100
+# python train_scratch_classifier.py --model_type ResNet34 --batch_size 16 --epochs 20 --learning_rate 0.005 --dataset_name cifar10

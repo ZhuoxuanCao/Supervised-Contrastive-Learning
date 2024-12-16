@@ -17,7 +17,7 @@ def ensure_dir_exists(path):
         print(f"Created directory: {path}")
 
 
-def save_best_model(classifier, save_path, last_save_path):
+def save_best_model(backbone, classifier, save_path, last_save_path):
     if save_path == last_save_path:
         print(f"Saving new model to {save_path}, skipping deletion of identical path.")
     else:
@@ -25,7 +25,11 @@ def save_best_model(classifier, save_path, last_save_path):
             os.remove(last_save_path)
             print(f"Deleted previous model: {last_save_path}")
 
-    torch.save(classifier.state_dict(), save_path)
+    # 保存 Backbone 和分类头的权重
+    torch.save({
+        "backbone_state_dict": backbone.state_dict(),
+        "classifier_state_dict": classifier.state_dict(),
+    }, save_path)
     print(f"New best model saved to {save_path}")
     return save_path
 
@@ -112,7 +116,7 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
                 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 save_path = os.path.join(save_dir,
                                          f"{model_type}_{dataset_name}_batch{batch_size}_valAcc{val_accuracy * 100:.2f}_{timestamp}.pth")
-                last_save_path = save_best_model(classifier, save_path, last_save_path)
+                last_save_path = save_best_model(model, classifier, save_path, last_save_path)
 
             scheduler.step()
 
@@ -147,8 +151,8 @@ def main():
 
     if args.dataset_name == "cifar10":
         transform = transforms.Compose([
-            transforms.RandomResizedCrop(32),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomResizedCrop(32),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
@@ -156,8 +160,8 @@ def main():
         num_classes = 10
     elif args.dataset_name == "cifar100":
         transform = transforms.Compose([
-            transforms.RandomResizedCrop(32),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomResizedCrop(32),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
