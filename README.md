@@ -1,8 +1,9 @@
+
 ## 1 代码结构
 - Contrastive_Learning/：包含与对比学习相关的代码。
  - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
    
- - config_con.py：该文件是配置文件，包含对比学习训练过程中的参数设置。
+ - config_con.py：该文件是监督式对比学习的配置文件，包含对比学习训练过程中的参数设置。
    
  - train_con.py：该文件实现了监督式对比学习的训练过程。
 
@@ -21,6 +22,7 @@
     - pretraining/：该目录保存了经过对比监督学习的预训练权重
       - ResNet34/：该目录保存了，使用 ResNet34 进行监督式对比学习训练后的权重
       - ResNet101/：该目录保存了，使用 ResNet101 进行监督式对比学习训练后的权重
+      - 以及更多的主干网络进行监督式对比学习训练后的权重
   
 - environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
 
@@ -59,7 +61,7 @@
 #### 2.1.2 示例运行指令  
 完整的示例运行指令，参数可以按需求修改：
 ```bash
-python main_con.py --batch_size 64 --learning_rate 0.01 --epochs 20 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supcon --input_resolution 64 --feature_dim 256 --num_workers 2
+python main_con.py --batch_size 32 --learning_rate 0.01 --epochs 2 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supout --input_resolution 32 --feature_dim 128 --num_workers 2
 ```
 ### 2.2 使用对比学习预训练的权重，进行分类训练
 
@@ -78,7 +80,7 @@ python main_con.py --batch_size 64 --learning_rate 0.01 --epochs 20 --temp 0.1 -
 #### 2.2.2 示例运行指令 
 
 ```bash
-python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
+python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 3 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
 ```
 
 ### 2.3 从头开始的分类器训练
@@ -94,6 +96,33 @@ python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model .
 
 #### 2.3.2 示例运行指令
 ```bash
-python train_scratch_classifier.py --model_type ResNet50 --batch_size 64 --epochs 20 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --save_dir ./saved_models/classification/scratch --gpu 0
+python train_scratch_classifier.py --model_type ResNet34 --batch_size 32 --epochs 3 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --save_dir ./saved_models/classification/scratch --gpu 0
 ```
+## 3 训练过程和逻辑
+
+在该项目中，监督式对比学习实际上是一种预训练思路，它提前为数据集进行了聚类。
+
+所以在训练过程中，需要先运行main_con，进行预训练。再运行train_pretrained_classifier，对预训练的权重进行线性分类训练。
+
+注意：
+- 两次训练必须使用同样的主干网络（如ResNet34），以及同样的数据集（如cifar10）！！！
+- train_pretrained_classifier时需要注意调用对应的预训练权重。
+  
+此外，train_scratch_classifier.py 是直接对数据集进行传统的分类训练，未经过预训练。用于和经过对比学习的结果进行性能对比。
+
+在训练中，会自动保存性能最佳的模型。
+
+服务器挂起的相关指令：
+
+tmux new -s
+
+tmux ls
+
+tmux attach -t 
+
+tmux kill-session -t 
+
+tmux kill-server
+
+  
 
