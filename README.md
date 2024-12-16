@@ -37,7 +37,7 @@
 
 ## 2 参数解释以及示例运行指令
 
-### 2.1 监督式对比学习训练
+### 2.1 监督式对比学习的训练
 
 #### 2.1.1 参数说明  
 
@@ -52,37 +52,48 @@
 - `--loss_type`：选择损失函数类型（默认值：`cross_entropy`）。示例：`--loss_type supcon`。  
 - `--dataset_name`：设置数据集名称，支持 `cifar10`、`cifar100` 等（默认值：`cifar10`）。示例：`--dataset_name cifar10`。  
 - `--model_type`：设置模型结构，支持 `resnet34`、`ResNeXt101` 等（默认值：`resnet34`）。示例：`--model_type ResNeXt101`。  
-- `--input_resolution`：设置输入图像的分辨率（默认值：32）。示例：`--input_resolution 64`。  
+- `--input_resolution`：设置输入图像的分辨率（默认值：32）。示例：`--input_resolution 32`，如果还了更大的数据集，如imagenet，需要调整为更大的值。  
 - `--feature_dim`：设置投影头特征尺寸（默认值：128）。示例：`--feature_dim 256`。  
-- `--num_workers`：设置数据加载的线程数（默认值：2）。示例：`--num_workers 4`。  
+- `--num_workers`：设置数据加载的线程数（默认值：2）。示例：`--num_workers 2`。  
 
-### 2.1.2 示例运行指令  
+#### 2.1.2 示例运行指令  
+完整的示例运行指令，参数可以按需求修改：
+```bash
+python main_con.py --batch_size 64 --learning_rate 0.01 --epochs 20 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supcon --input_resolution 64 --feature_dim 256 --num_workers 2
+```
+### 2.2 使用对比学习预训练的权重，进行分类训练
+
+#### 2.2.1 参数说明 
+
+- `--model_type`：设置模型类型，支持 `ResNet34`、`ResNet50`、`ResNet101`、`ResNet200`（默认值：`ResNet50`）。  
+- `--batch_size`：设置批量大小（默认值：64）。  
+- `--epochs`：设置训练的 epoch 数（默认值：10）。  
+- `--learning_rate`：设置学习率（默认值：0.001）。  
+- `--dataset_name`：设置数据集名称，支持 `cifar10`、`cifar100`、`imagenet`（默认值：`cifar10`）。  
+- `--dataset`：设置数据集路径（默认值：`./data`）。  
+- `--pretrained_model`：设置预训练模型路径，需与 `--use_pretrained` 一起使用（默认值：`None`）。  
+- `--save_dir`：设置模型保存目录（默认值：`./saved_models/classification/pretrain`）。  
+- `--gpu`：指定使用的 GPU 设备 ID（默认值：0）。
+
+#### 2.2.2 示例运行指令 
 
 ```bash
-python main.py --batch_size 64 --learning_rate 0.01 --epochs 20 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supcon --input_resolution 64 --feature_dim 256 --num_workers 4
+python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
 ```
 
+### 2.3 从头开始的分类器训练
+#### 2.3.1 参数说明 
+- `--model_type`：设置模型类型，支持 `ResNet50`、`ResNet34`、`ResNet101`、`ResNet200`（默认值：`ResNet50`）。  
+- `--batch_size`：设置批量大小（默认值：64）。  
+- `--epochs`：设置训练的 epoch 数（默认值：10）。  
+- `--learning_rate`：设置学习率（默认值：0.1）。  
+- `--dataset_name`：设置数据集名称，支持 `cifar10`、`cifar100`、`imagenet`（默认值：`cifar10`）。  
+- `--dataset`：设置数据集路径（默认值：`./data`）。  
+- `--save_dir`：设置保存最佳模型的目录（默认值：`./saved_models/classification/scratch`）。  
+- `--gpu`：指定使用的 GPU 设备 ID（默认值：0）。
 
-以下是项目中各个命令行参数的解释及其用途，您可以根据项目需求灵活配置这些参数：
-
-* `--batch_size`：设置批量大小（默认值：32）。示例： `--batch_size 8` ，表示每次迭代使用8个样本进行训练。
-* `--learning_rate`：设置学习率（默认值：0.001），控制优化器的步长。较小的学习率会使模型收敛更慢但可能获得更好的结果。示例：`--learning_rate 0.01`。
-* `--epochs`：设置训练的 epoch 数（默认值：15），即数据集的完整迭代次数。示例：`--epochs 25` 表示训练25个完整的 epoch。
-* `--temp`：设置对比损失中的温度参数（默认值：0.07），用于缩放对比损失。示例：`--temp 0.1`。
-* `--save_freq`：设置模型检查点的保存频率（默认值：5），即每隔多少个 epoch 保存一次模型。示例：`--save_freq 3` 表示每3个 epoch 保存一次。
-* `--log_dir`：设置 TensorBoard 日志保存目录（默认值：`./logs`）。所有的训练日志会保存在该目录下。示例：`--log_dir ./my_logs`。
-* `--model_save_dir`：设置模型检查点保存目录（默认值：`./checkpoints`）。训练过程中每个保存的模型文件会保存在该目录下。示例：`--model_save_dir ./my_checkpoints`。
-* `--gpu`：指定使用的 GPU 设备 ID（默认值：0）。设置为 `None` 时则使用 CPU。示例：`--gpu 0` 表示使用第一个 GPU。
-* `--dataset`：指定数据集的存储路径（默认值：`./data`）。示例：`--dataset ./data`。
-* `--dataset_name`：设置数据集名称，支持 `cifar10`、`cifar100`、`imagenet`（默认值：`cifar10`）。示例：`--dataset_name cifar10`。
-* `--model_type`：选择用于训练的模型类型（默认值：`resnet34`），支持 `resnet34`、`ResNeXt101`、`WideResNet` 等。示例：`--model_type ResNeXt101`。
-* `--loss_type`：选择损失函数类型（默认值：`supcon`），可选项包括 `cross_entropy`、`supcon`、`supin`。示例：`--loss_type supcon` 表示使用 `SupConLoss_out` 损失函数。
-* `--augmentation`：设置数据增强方式（默认值：`basic`），支持 `basic` 和 `advanced`。示例：`--augmentation advanced`。
-
-### 示例运行指令
-
+#### 2.3.2 示例运行指令
 ```bash
-python main.py --batch_size 8 --learning_rate 0.0001 --epochs 5 --temp 0.1 --save_freq 3 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type SupOut --augmentation basic
+python train_scratch_classifier.py --model_type ResNet50 --batch_size 64 --epochs 20 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --save_dir ./saved_models/classification/scratch --gpu 0
 ```
-
 
