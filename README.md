@@ -16,8 +16,9 @@ my_logs/：用于存储训练过程中的日志信息，便于跟踪和分析模
 
 saved_models/：用于保存训练后的模型，便于后续加载和评估。
 - classification/：该目录保存了用于分类任务的模型权重
- -- pretrain/
- -- scratch/
+ - pretrain/
+ - scratch/
+  
 - pretraining/：该目录保存了经过对比监督学习的预训练权重
 
 environment.yml：列出了项目所需的Python库及其版本，便于环境的搭建和依赖管理。
@@ -57,6 +58,4 @@ utils.py：包含辅助函数，如数据加载、模型保存和日志记录等
 python main.py --batch_size 8 --learning_rate 0.0001 --epochs 5 --temp 0.1 --save_freq 3 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type SupOut --augmentation basic
 ```
 
-以上命令将在 CIFAR-10 数据集上以 resnet34 模型进行训练，使用 SupConLoss_out 损失函数，训练 5 个 epoch，批量大小为 8，学习率为 0.001，且每隔 3 个 epoch 保存一次模型。
 
-根据项目需求，可以随时调整命令行中的参数配置以实现灵活的实验设置。
