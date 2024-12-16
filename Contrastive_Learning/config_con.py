@@ -16,7 +16,7 @@ def parse_option():
 
     # 日志保存目录，用于保存训练过程的日志（每个 epoch 的损失、准确率等）
     parser.add_argument('--log_dir', type=str, default='./logs', help='Directory to save training logs')
-    # 模型保存目录，用于保存训练的模型检查点
+    # # 模型保存目录，用于保存训练的模型检查点
     parser.add_argument('--model_save_dir', type=str, default='./checkpoints',
                         help='Directory to save model checkpoints')
 
