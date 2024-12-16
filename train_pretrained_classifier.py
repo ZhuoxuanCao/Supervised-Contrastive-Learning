@@ -134,8 +134,8 @@ def main():
     parser.add_argument("--pretrained_model", type=str, default=None, help="Path to pre-trained SupConResNet (required if --use_pretrained)")
     parser.add_argument("--save_dir", type=str, default="./saved_models/classification/pretrain", help="Directory to save the best classifier")
     parser.add_argument("--gpu", type=int, default=0, help="GPU id to use (default: 0)")
-    parser.add_argument("--use_pretrained", action="store_true", help="Use a pre-trained SupConResNet (default: False)")
-    parser.add_argument("--no_pretrained", dest="use_pretrained", action="store_false", help="Do not use pre-trained weights")
+    # parser.add_argument("--use_pretrained", action="store_true", help="Use a pre-trained SupConResNet (default: False)")
+    # parser.add_argument("--no_pretrained", dest="use_pretrained", action="store_false", help="Do not use pre-trained weights")
     parser.set_defaults(use_pretrained=True)
 
     args = parser.parse_args()
