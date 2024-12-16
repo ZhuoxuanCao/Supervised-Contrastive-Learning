@@ -87,9 +87,6 @@ def main():
     logging.info(f"Training complete. Best loss: {best_loss:.4f}")
     print(f"Training complete. Best loss: {best_loss:.4f}")
 
-
-
-
 if __name__ == "__main__":
     main()
 
