@@ -200,4 +200,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python train_clasifier2.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10
+# python train_scratch_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10

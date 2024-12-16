@@ -232,7 +232,7 @@ if __name__ == "__main__":
 
 
 
-# python train_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --gpu 0
+# python train_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth
 
 
 # python train_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
