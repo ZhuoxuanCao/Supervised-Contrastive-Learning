@@ -165,66 +165,150 @@ def create_scheduler(optimizer, warmup_epochs, total_epochs):
     return LambdaLR(optimizer, lr_lambda)
 
 
-def save_model(model, opt, epoch, loss, save_root):
+# def save_model(model, opt, epoch, loss, save_root):
+#     """
+#     保存模型到指定的文件夹，按模型类型分类管理。
+#     """
+#     model_dir = os.path.join(save_root, opt['model_type'])
+#     os.makedirs(model_dir, exist_ok=True)
+#
+#     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+#     save_path = os.path.join(
+#         model_dir,
+#         f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_batch{opt['batch_size']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
+#     )
+#
+#     torch.save({
+#         "model_state_dict": model.state_dict(),
+#         "config": opt
+#     }, save_path)
+#
+#     print(f"Model saved to {save_path}")
+
+def save_best_model(model, opt, epoch, loss, save_root, best_loss, last_save_path):
     """
-    保存模型到指定的文件夹，按模型类型分类管理。
+    保存性能最佳的模型，并删除旧的最佳模型。
     """
-    model_dir = os.path.join(save_root, opt['model_type'])
-    os.makedirs(model_dir, exist_ok=True)
+    if loss < best_loss:
+        model_dir = os.path.join(save_root, opt['model_type'])
+        os.makedirs(model_dir, exist_ok=True)
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    save_path = os.path.join(
-        model_dir,
-        f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_batch{opt['batch_size']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
-    )
+        # 生成新模型的保存路径
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        save_path = os.path.join(
+            model_dir,
+            f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_batch{opt['batch_size']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
+        )
 
-    torch.save({
-        "model_state_dict": model.state_dict(),
-        "config": opt
-    }, save_path)
+        # 保存新模型
+        torch.save({
+            "model_state_dict": model.state_dict(),
+            "config": opt
+        }, save_path)
+        print(f"New best model saved to {save_path}")
 
-    print(f"Model saved to {save_path}")
+        # 删除旧模型（如果存在）
+        if last_save_path and os.path.exists(last_save_path):
+            os.remove(last_save_path)
+            print(f"Deleted previous best model: {last_save_path}")
 
+        return loss, save_path  # 更新最佳损失和保存路径
+    else:
+        return best_loss, last_save_path
+
+
+
+# def train(train_loader, model, criterion, optimizer, opt, device, epoch=None):
+#     """
+#     对比学习预训练的训练函数
+#     """
+#     model.train()
+#     running_loss = 0.0
+#     total_steps = len(train_loader)
+#
+#     train_bar = tqdm(enumerate(train_loader), total=total_steps, desc="Training", leave=False)
+#     for step, (inputs, labels) in train_bar:
+#         if isinstance(inputs, list) and len(inputs) == 2:
+#             inputs = torch.cat([inputs[0], inputs[1]], dim=0).to(device)
+#         else:
+#             inputs = inputs.to(device)
+#         labels = labels.to(device)
+#
+#         optimizer.zero_grad()
+#         features = model(inputs)
+#
+#         f1, f2 = torch.split(features, features.size(0) // 2, dim=0)
+#         contrastive_features = torch.stack([f1, f2], dim=1)
+#
+#         if contrastive_features.size(0) != labels.size(0):
+#             labels = labels[:contrastive_features.size(0)]
+#
+#         loss = criterion(contrastive_features, labels)
+#         loss.backward()
+#         optimizer.step()
+#
+#         running_loss += loss.item()
+#         train_bar.set_postfix(loss=loss.item())
+#
+#     epoch_loss = running_loss / len(train_loader)
+#     print(f"--- Summary for Epoch [{epoch + 1}] ---")
+#     print(f"    Average Loss: {epoch_loss:.4f}")
+#
+#     if epoch is not None and epoch % 5 == 0:
+#         save_model(model, opt, epoch, epoch_loss, "./saved_models/pretraining")
+#
+#     return epoch_loss
 
 def train(train_loader, model, criterion, optimizer, opt, device, epoch=None):
     """
-    对比学习预训练的训练函数
+    对比学习预训练的训练函数。
+    支持保存性能最佳的模型，并删除之前性能较差的模型。
     """
-    model.train()
-    running_loss = 0.0
-    total_steps = len(train_loader)
+    model.train()  # 设置模型为训练模式
+    running_loss = 0.0  # 累积损失初始化
+    total_steps = len(train_loader)  # 总步数
+    best_loss = opt.get("best_loss", float('inf'))  # 初始化最佳损失
+    last_save_path = opt.get("last_save_path", None)  # 初始化保存路径
 
     train_bar = tqdm(enumerate(train_loader), total=total_steps, desc="Training", leave=False)
     for step, (inputs, labels) in train_bar:
+        # 数据预处理：拼接两种图像增强结果
         if isinstance(inputs, list) and len(inputs) == 2:
             inputs = torch.cat([inputs[0], inputs[1]], dim=0).to(device)
         else:
             inputs = inputs.to(device)
         labels = labels.to(device)
 
-        optimizer.zero_grad()
-        features = model(inputs)
+        optimizer.zero_grad()  # 梯度清零
+        features = model(inputs)  # 前向传播
 
+        # 分割对比特征并重新组合
         f1, f2 = torch.split(features, features.size(0) // 2, dim=0)
         contrastive_features = torch.stack([f1, f2], dim=1)
 
+        # 对齐标签和特征的尺寸
         if contrastive_features.size(0) != labels.size(0):
             labels = labels[:contrastive_features.size(0)]
 
+        # 计算损失
         loss = criterion(contrastive_features, labels)
-        loss.backward()
-        optimizer.step()
+        loss.backward()  # 反向传播
+        optimizer.step()  # 参数更新
 
-        running_loss += loss.item()
-        train_bar.set_postfix(loss=loss.item())
+        running_loss += loss.item()  # 累积损失
+        train_bar.set_postfix(loss=loss.item())  # 更新进度条显示
 
-    epoch_loss = running_loss / len(train_loader)
+    epoch_loss = running_loss / len(train_loader)  # 计算平均损失
     print(f"--- Summary for Epoch [{epoch + 1}] ---")
     print(f"    Average Loss: {epoch_loss:.4f}")
 
-    if epoch is not None and epoch % 5 == 0:
-        save_model(model, opt, epoch, epoch_loss, "./saved_models/pretraining")
+    # # 保存性能最佳的模型并删除旧模型
+    # save_root = "./saved_models/pretraining"
+    # best_loss, last_save_path = save_best_model(model, opt, epoch, epoch_loss, save_root, best_loss, last_save_path)
+
+    # 更新 opt 中的状态
+    opt["best_loss"] = best_loss
+    opt["last_save_path"] = last_save_path
 
     return epoch_loss
 
-# python main_con.py --batch_size 8 --learning_rate 0.8 --epochs 700 --temp 0.1 --log_dir ./my_logs --model_save_dir ./saved_models --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet101 --loss_type supout

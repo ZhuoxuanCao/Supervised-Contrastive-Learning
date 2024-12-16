@@ -2,7 +2,7 @@ import os
 import torch
 import logging  # 引入日志模块
 from Contrastive_Learning import config_con
-from Contrastive_Learning import train, set_loader, set_model, create_scheduler, LARS, save_model
+from Contrastive_Learning import train, set_loader, set_model, create_scheduler, LARS, save_best_model
 
 def ensure_dir_exists(path):
     """Ensure that the directory exists."""
@@ -59,12 +59,15 @@ def main():
         weight_decay=1e-4,
         eta=0.001,
         epsilon=1e-8,
-        min_lr = 1e-6  # 添加最小学习率下限
+        min_lr=1e-6  # 添加最小学习率下限
     )
     scheduler = create_scheduler(optimizer, warmup_epochs=5, total_epochs=opt['epochs'])
 
     # 训练循环
-    best_loss = float('inf')
+    best_loss = float('inf')  # 初始化最佳损失
+    last_save_path = None  # 初始化最后保存的路径
+    save_root = "./saved_models/pretraining"  # 预训练模型的根目录
+
     for epoch in range(opt['epochs']):
         logging.info(f"Epoch [{epoch + 1}/{opt['epochs']}] started.")
         print(f"Epoch [{epoch + 1}/{opt['epochs']}]")
@@ -78,15 +81,12 @@ def main():
 
         print(f"Train Loss: {epoch_loss:.4f}, Learning Rate: {scheduler.get_last_lr()[0]:.6f}")
 
-        # 保存当前最优模型
-        if epoch_loss < best_loss:
-            best_loss = epoch_loss
-            save_root = "./saved_models/pretraining"  # 预训练模型的根目录
-            save_model(model, opt, epoch, epoch_loss, save_root)
-            logging.info(f"Best model updated. Loss: {best_loss:.4f}, Model saved to {save_root}")
+        # 保存当前性能最佳的模型
+        best_loss, last_save_path = save_best_model(model, opt, epoch, epoch_loss, save_root, best_loss, last_save_path)
 
     logging.info(f"Training complete. Best loss: {best_loss:.4f}")
     print(f"Training complete. Best loss: {best_loss:.4f}")
+
 
 
 
