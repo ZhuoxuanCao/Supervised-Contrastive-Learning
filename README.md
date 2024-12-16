@@ -1,5 +1,5 @@
-## 代码结构
--Contrastive_Learning/：包含与对比学习相关的代码。
+## 1 代码结构
+- Contrastive_Learning/：包含与对比学习相关的代码。
  - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
    
  - config_con.py：该文件是配置文件，包含对比学习训练过程中的参数设置。
@@ -35,7 +35,33 @@
 - utils.py：包含辅助函数，如数据加载、模型保存和日志记录等功能（用不上）。
 
 
-## 参数解释
+## 2 参数解释以及示例运行指令
+
+### 2.1 监督式对比学习训练
+
+#### 2.1.1 参数说明  
+
+- `--batch_size`：设置批量大小（默认值：32）。示例：`--batch_size 64`。  
+- `--learning_rate`：设置学习率（默认值：0.001）。示例：`--learning_rate 0.01`。  
+- `--epochs`：设置训练的 epoch 数（默认值：15）。示例：`--epochs 25`。  
+- `--temp`：设置对比损失的温度参数（默认值：0.07）。示例：`--temp 0.1`。  
+- `--log_dir`：设置训练日志的保存目录（默认值：`./logs`）。示例：`--log_dir ./my_logs`。  
+- `--model_save_dir`：设置模型检查点的保存目录（默认值：`./checkpoints`）。示例：`--model_save_dir ./my_checkpoints`。  
+- `--gpu`：指定使用的 GPU 设备 ID（默认值：0）。示例：`--gpu 0`。  
+- `--dataset`：设置数据集路径（默认值：`./data`）。示例：`--dataset ./datasets`。  
+- `--loss_type`：选择损失函数类型（默认值：`cross_entropy`）。示例：`--loss_type supcon`。  
+- `--dataset_name`：设置数据集名称，支持 `cifar10`、`cifar100` 等（默认值：`cifar10`）。示例：`--dataset_name cifar10`。  
+- `--model_type`：设置模型结构，支持 `resnet34`、`ResNeXt101` 等（默认值：`resnet34`）。示例：`--model_type ResNeXt101`。  
+- `--input_resolution`：设置输入图像的分辨率（默认值：32）。示例：`--input_resolution 64`。  
+- `--feature_dim`：设置投影头特征尺寸（默认值：128）。示例：`--feature_dim 256`。  
+- `--num_workers`：设置数据加载的线程数（默认值：2）。示例：`--num_workers 4`。  
+
+### 2.1.2 示例运行指令  
+
+```bash
+python main.py --batch_size 64 --learning_rate 0.01 --epochs 20 --temp 0.1 --log_dir ./my_logs --model_save_dir ./my_checkpoints --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet34 --loss_type supcon --input_resolution 64 --feature_dim 256 --num_workers 4
+```
+
 
 以下是项目中各个命令行参数的解释及其用途，您可以根据项目需求灵活配置这些参数：
 
