@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from losses import SupConLoss_in, SupConLoss_out, CrossEntropyLoss
 
 from models import ResModel, ResNet34, ResNeXt101_32x8d, WideResNet_28_10, ResNet50, ResNet101, ResNet200, \
-    CSPDarknet53Classifier, SupConResNetFactory
+    CSPDarknet53, SupConResNetFactory
 
 from data_augmentation.data_augmentation_1 import TwoCropTransform, get_base_transform
 

@@ -11,8 +11,8 @@ def parse_option():
     parser.add_argument('--epochs', type=int, default=15, help='Number of training epochs')
     # 温度参数，用于对比损失中的温度缩放
     parser.add_argument('--temp', type=float, default=0.07, help='Temperature for contrastive loss')
-    # 检查点保存频率，每隔多少个epoch保存一次模型
-    parser.add_argument('--save_freq', type=int, default=5, help='Save frequency for checkpoints')
+    # # 检查点保存频率，每隔多少个epoch保存一次模型
+    # parser.add_argument('--save_freq', type=int, default=5, help='Save frequency for checkpoints')
 
     # 日志保存目录，用于保存训练过程的日志（每个 epoch 的损失、准确率等）
     parser.add_argument('--log_dir', type=str, default='./logs', help='Directory to save training logs')
@@ -33,13 +33,16 @@ def parse_option():
     # 模型类型，指定要使用的模型结构（resnet34、ResNeXt101、WideResNet等）
     parser.add_argument('--model_type', type=str, default='resnet34',
                         help='Model type (e.g., resnet34, ResNeXt101, WideResNet)')
-    # 数据增强方法，选择数据增强模式
-    parser.add_argument('--augmentation', type=str, default='basic',
-                        help='Data augmentation method (e.g., basic, advanced)')
+    # # 数据增强方法，选择数据增强模式
+    # parser.add_argument('--augmentation', type=str, default='basic',
+    #                     help='Data augmentation method (e.g., basic, advanced)')
     # 输入分辨率
     parser.add_argument('--input_resolution', type=int, default=32, help='Input image resolution')
-
+    # 投影头特征尺寸
     parser.add_argument('--feature_dim', type=int, default=128, help='Feature dimension for the projection head')
+
+    parser.add_argument("--num_workers", type=int, default=2, help="Number of workers for data loading (default: 2)")
+
     # class_name参数通常用于指定数据集中具体的类标签，尤其是在多分类任务中需要对特定类别进行操作时会用到。
     # parser.add_argument('--class_name', type=str, default='default_class', help='Class name for dataset')
     # action_type参数可以用来指定代码的执行模式（如train、test、inference等），这样可以在一个脚本中实现不同的功能

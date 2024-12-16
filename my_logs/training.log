@@ -1,0 +1,13 @@
+2024-12-15 11:35:48,121 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-15 11:37:13,146 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-15 11:37:15,406 - INFO - Epoch [1/700] started.
+2024-12-16 11:04:41,080 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 11:06:59,287 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 11:07:01,951 - INFO - Epoch [1/700] started.
+2024-12-16 11:11:03,665 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 11:11:06,344 - INFO - Epoch [1/700] started.
+2024-12-16 11:12:50,370 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 11:12:53,193 - INFO - Epoch [1/700] started.
+2024-12-16 11:16:38,217 - INFO - Epoch [1/700]: Train Loss: 3.4813, Learning Rate: 0.320000
+2024-12-16 11:16:38,297 - INFO - Best model updated. Loss: 3.4813, Model saved to ./saved_models/pretraining
+2024-12-16 11:16:38,297 - INFO - Epoch [2/700] started.
