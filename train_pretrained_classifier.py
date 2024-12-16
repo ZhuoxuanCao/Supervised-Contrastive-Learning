@@ -29,9 +29,9 @@ def save_best_model(classifier, save_path, last_save_path):
     print(f"New best model saved to {save_path}")
     return save_path
 
+
 def train_classifier(train_loader, val_loader, model, classifier, optimizer, scheduler, criterion, device, epochs=10,
-                     save_dir="./saved_models", model_type="ResNet50", batch_size=64, use_pretrained=True):
-    # 冻结预训练模型或训练整个模型
+                     save_dir="./saved_models", model_type="ResNet50", batch_size=64, use_pretrained=True, dataset_name="cifar10"):
     if use_pretrained:
         model.eval()
     else:
@@ -46,14 +46,12 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
         for epoch in range(epochs):
             print(f"Epoch [{epoch + 1}/{epochs}]")
 
-            # 初始化训练指标
             running_loss = 0.0
             correct = 0
             total = 0
-            batch_losses = []  # 保存每个 batch 的损失
-            batch_accuracies = []  # 保存每个 batch 的准确率
+            batch_losses = []
+            batch_accuracies = []
 
-            # 训练循环
             model.train()
             train_bar = tqdm(train_loader, desc="Training", leave=False)
             for inputs, labels in train_bar:
@@ -61,9 +59,9 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
 
                 if use_pretrained:
                     with torch.no_grad():
-                        features = model.encoder(inputs)  # 冻结 encoder
+                        features = model.encoder(inputs)
                 else:
-                    features = model.encoder(inputs)  # 训练 encoder
+                    features = model.encoder(inputs)
 
                 outputs = classifier(features)
                 loss = criterion(outputs, labels)
@@ -72,7 +70,6 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
                 loss.backward()
                 optimizer.step()
 
-                # 记录 batch 的损失和准确率
                 _, predicted = outputs.max(1)
                 correct += (predicted == labels).sum().item()
                 total += labels.size(0)
@@ -80,7 +77,6 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
                 batch_losses.append(loss.item())
                 batch_accuracies.append((predicted == labels).float().mean().item())
 
-                # 更新进度条
                 train_bar.set_postfix(loss=loss.item(), acc=batch_accuracies[-1] * 100)
 
             epoch_loss = running_loss / len(train_loader)
@@ -90,7 +86,6 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
             print(
                 f"  Batch Accuracy: min={min(batch_accuracies) * 100:.2f}%, max={max(batch_accuracies) * 100:.2f}%, mean={epoch_accuracy * 100:.2f}%")
 
-            # 验证循环
             classifier.eval()
             val_correct = 0
             val_total = 0
@@ -112,21 +107,20 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
             val_accuracy = val_correct / val_total
             print(f"Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy * 100:.2f}%")
 
-            # 保存最佳模型
             if val_accuracy > best_accuracy:
                 best_accuracy = val_accuracy
                 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 save_path = os.path.join(save_dir,
-                                         f"{model_type}_batch{batch_size}_valAcc{val_accuracy * 100:.2f}_{timestamp}.pth")
+                                         f"{model_type}_{dataset_name}_batch{batch_size}_valAcc{val_accuracy * 100:.2f}_{timestamp}.pth")
                 last_save_path = save_best_model(classifier, save_path, last_save_path)
 
-            # 更新学习率
             scheduler.step()
 
         print(f"Training complete. Best model saved with validation accuracy: {best_accuracy * 100:.2f}%")
     except Exception as e:
         print(f"Error during training: {e}")
         raise
+
 
 
 def main():
@@ -224,7 +218,9 @@ def main():
     criterion = nn.CrossEntropyLoss()
 
     print("Training started...")
-    train_classifier(train_loader, val_loader, model, classifier, optimizer, scheduler, criterion, device, epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type, batch_size=args.batch_size, use_pretrained=args.use_pretrained)
+    train_classifier(train_loader, val_loader, model, classifier, optimizer, scheduler, criterion,
+                     device,epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type,
+                     batch_size=args.batch_size, use_pretrained=args.use_pretrained,dataset_name=args.dataset_name)
 
 
 if __name__ == "__main__":
@@ -232,7 +228,7 @@ if __name__ == "__main__":
 
 
 
-# python train_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10 --dataset ./data --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth
+# python train_pretrained_classifier.py --model_type ResNet34 --batch_size 32 --epochs 30 --learning_rate 0.1 --dataset_name cifar100  --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth
 
 
 # python train_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0

@@ -29,7 +29,7 @@ def save_best_model(model, save_path, last_save_path):
     return save_path
 
 
-def train_from_scratch(train_loader, val_loader, model, optimizer, scheduler, criterion, device, epochs=10,
+def train_from_scratch(train_loader, val_loader, model, optimizer, scheduler, criterion, device, dataset_name, epochs=10,
                        save_dir="./saved_models", model_type="ResNet50", batch_size=64):
     model.train()
     best_accuracy = 0.0
@@ -104,7 +104,7 @@ def train_from_scratch(train_loader, val_loader, model, optimizer, scheduler, cr
                 best_accuracy = val_accuracy
                 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
                 save_path = os.path.join(save_dir,
-                                         f"{model_type}_batch{batch_size}_valAcc{val_accuracy * 100:.2f}_{timestamp}.pth")
+                                         f"{model_type}_{dataset_name}_batch{batch_size}_valAcc{val_accuracy * 100:.2f}_{timestamp}.pth")
                 last_save_path = save_best_model(model, save_path, last_save_path)
 
             # Update learning rate
@@ -194,10 +194,11 @@ def main():
 
     # Train from scratch
     print("Training started...")
-    train_from_scratch(train_loader, val_loader, model, optimizer, scheduler, criterion, device, epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type, batch_size=args.batch_size)
+    train_from_scratch(train_loader, val_loader, model, optimizer, scheduler, criterion, device, dataset_name=args.dataset_name,
+                       epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type, batch_size=args.batch_size)
 
 
 if __name__ == "__main__":
     main()
 
-# python train_scratch_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar10
+# python train_scratch_classifier.py --model_type ResNet34 --batch_size 32 --epochs 20 --learning_rate 0.1 --dataset_name cifar100

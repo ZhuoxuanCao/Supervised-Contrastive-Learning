@@ -175,7 +175,7 @@ def save_model(model, opt, epoch, loss, save_root):
     timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     save_path = os.path.join(
         model_dir,
-        f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_res{opt['input_resolution']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
+        f"{opt['model_type']}_{opt['dataset_name']}_feat{opt['feature_dim']}_batch{opt['batch_size']}_epoch{epoch}_loss{loss:.4f}_{timestamp}.pth"
     )
 
     torch.save({
@@ -227,3 +227,4 @@ def train(train_loader, model, criterion, optimizer, opt, device, epoch=None):
 
     return epoch_loss
 
+# python main_con.py --batch_size 8 --learning_rate 0.8 --epochs 700 --temp 0.1 --log_dir ./my_logs --model_save_dir ./saved_models --gpu 0 --dataset ./data --dataset_name cifar10 --model_type ResNet101 --loss_type supout

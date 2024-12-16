@@ -11,3 +11,13 @@
 2024-12-16 11:16:38,217 - INFO - Epoch [1/700]: Train Loss: 3.4813, Learning Rate: 0.320000
 2024-12-16 11:16:38,297 - INFO - Best model updated. Loss: 3.4813, Model saved to ./saved_models/pretraining
 2024-12-16 11:16:38,297 - INFO - Epoch [2/700] started.
+2024-12-16 14:13:56,201 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 14:13:58,629 - INFO - Epoch [1/700] started.
+2024-12-16 14:20:45,133 - INFO - Epoch [1/700]: Train Loss: 3.5923, Learning Rate: 0.320000
+2024-12-16 14:20:45,153 - INFO - Best model updated. Loss: 3.5923, Model saved to ./saved_models/pretraining
+2024-12-16 14:20:45,153 - INFO - Epoch [2/700] started.
+2024-12-16 14:21:48,302 - INFO - Logging initialized. Logs will be saved to: ./my_logs\training.log
+2024-12-16 14:21:51,438 - INFO - Epoch [1/700] started.
+2024-12-16 14:31:38,621 - INFO - Epoch [1/700]: Train Loss: 3.8592, Learning Rate: 0.320000
+2024-12-16 14:31:38,790 - INFO - Best model updated. Loss: 3.8592, Model saved to ./saved_models/pretraining
+2024-12-16 14:31:38,790 - INFO - Epoch [2/700] started.
