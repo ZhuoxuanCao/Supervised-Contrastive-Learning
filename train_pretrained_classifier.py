@@ -2,14 +2,19 @@
 
 import argparse
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
+from torch_optimizer import Lookahead
+from torchvision.transforms import AutoAugment, AutoAugmentPolicy
 from models import ResNet34, ResNet50, ResNet101, ResNet200, SupConResNetFactory
+from data_augmentation import cutmix_data, cutmix_criterion, mixup_data, mixup_criterion
 import os
 from tqdm import tqdm  # 用于显示进度条
 import datetime
+
 
 def ensure_dir_exists(path):
     if not os.path.exists(path):
@@ -35,7 +40,8 @@ def save_best_model(backbone, classifier, save_path, last_save_path):
 
 
 def train_classifier(train_loader, val_loader, model, classifier, optimizer, scheduler, criterion, device, epochs=10,
-                     save_dir="./saved_models", model_type="ResNet50", batch_size=64, use_pretrained=True, dataset_name="cifar10"):
+                     save_dir="./saved_models", model_type="ResNet50", batch_size=64, use_pretrained=True,
+                     dataset_name="cifar10"):
     if use_pretrained:
         model.eval()
     else:
@@ -61,14 +67,18 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
             for inputs, labels in train_bar:
                 inputs, labels = inputs.to(device), labels.to(device)
 
-                if use_pretrained:
-                    with torch.no_grad():
-                        features = model.encoder(inputs)
+                # 随机选择 CutMix 或 Mixup
+                if np.random.rand() < 0.2:  # 50% 概率使用 CutMix
+                    inputs, labels_a, labels_b, lam = cutmix_data(inputs, labels, alpha=1.0)
+                    outputs = classifier(model.encoder(inputs))
+                    loss = cutmix_criterion(criterion, outputs, labels_a, labels_b, lam)
+                elif np.random.rand() < 0.4:
+                    inputs, labels_a, labels_b, lam = mixup_data(inputs, labels, alpha=0.2)
+                    outputs = classifier(model.encoder(inputs))
+                    loss = mixup_criterion(criterion, outputs, labels_a, labels_b, lam)
                 else:
-                    features = model.encoder(inputs)
-
-                outputs = classifier(features)
-                loss = criterion(outputs, labels)
+                    outputs = classifier(model.encoder(inputs))
+                    loss = criterion(outputs, labels)
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -126,17 +136,20 @@ def train_classifier(train_loader, val_loader, model, classifier, optimizer, sch
         raise
 
 
-
 def main():
     parser = argparse.ArgumentParser(description="Train a classification head on top of a frozen feature extractor")
-    parser.add_argument("--model_type", type=str, default="ResNet50", help="Model type (ResNet50, ResNet34, ResNet101, ResNet200)")
+    parser.add_argument("--model_type", type=str, default="ResNet50",
+                        help="Model type (ResNet50, ResNet34, ResNet101, ResNet200)")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
     parser.add_argument("--epochs", type=int, default=10, help="Number of epochs")
     parser.add_argument("--learning_rate", type=float, default=0.001, help="Learning rate")
-    parser.add_argument("--dataset_name", type=str, default="cifar10", help="Dataset name (cifar10, cifar100, imagenet)")
+    parser.add_argument("--dataset_name", type=str, default="cifar10",
+                        help="Dataset name (cifar10, cifar100, imagenet)")
     parser.add_argument("--dataset", type=str, default="./data", help="Path to dataset")
-    parser.add_argument("--pretrained_model", type=str, default=None, help="Path to pre-trained SupConResNet (required if --use_pretrained)")
-    parser.add_argument("--save_dir", type=str, default="./saved_models/classification/pretrained", help="Directory to save the best classifier")
+    parser.add_argument("--pretrained_model", type=str, default=None,
+                        help="Path to pre-trained SupConResNet (required if --use_pretrained)")
+    parser.add_argument("--save_dir", type=str, default="./saved_models/classification/pretrained",
+                        help="Directory to save the best classifier")
     parser.add_argument("--gpu", type=int, default=0, help="GPU id to use (default: 0)")
     # parser.add_argument("--use_pretrained", action="store_true", help="Use a pre-trained SupConResNet (default: False)")
     # parser.add_argument("--no_pretrained", dest="use_pretrained", action="store_false", help="Do not use pre-trained weights")
@@ -153,6 +166,13 @@ def main():
         transform = transforms.Compose([
             # transforms.RandomResizedCrop(32),
             # transforms.RandomHorizontalFlip(),
+            AutoAugment(AutoAugmentPolicy.CIFAR10),
+            transforms.RandomResizedCrop(size=opt.size, scale=(0.2, 1.)),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.4, 0.1)], p=0.6),
+            transforms.RandomGrayscale(p=0.1),  # 随机灰度
+            transforms.RandomRotation(10),  # 随机旋转
+            # transforms.RandomApply([transforms.GaussianBlur(kernel_size=3)], p=0.05),  # 随机高斯模糊
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
         ])
@@ -209,32 +229,51 @@ def main():
     model = model.to(device)
 
     with torch.no_grad():
-        dummy_input = torch.randn(1, 3, 32 if args.dataset_name != "imagenet" else 224, 32 if args.dataset_name != "imagenet" else 224).to(device)
+        dummy_input = torch.randn(1, 3, 32 if args.dataset_name != "imagenet" else 224,
+                                  32 if args.dataset_name != "imagenet" else 224).to(device)
         feature_dim = model.encoder(dummy_input).size(1)
 
     classifier = nn.Linear(feature_dim, num_classes).to(device)
 
-    optimizer = optim.SGD(list(classifier.parameters()) + (list(model.parameters()) if not args.use_pretrained else []),
-                          lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
+    base_optimizer = optim.SGD(
+        list(classifier.parameters()) + (list(model.parameters()) if not args.use_pretrained else []),
+        lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
+
+    optimizer = Lookahead(base_optimizer, k=5, alpha=0.5)
 
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
+
+    #     # 使用 AdamW 作为基础优化器
+    #     base_optimizer = optim.AdamW(
+    #         model.parameters(),
+    #         lr=args.learning_rate,  # 学习率，与 SGD 的默认值可能不同，建议适当减小
+    #         betas=(0.9, 0.999),  # 默认 AdamW 参数
+    #         eps=1e-8,  # 防止数值不稳定
+    #         weight_decay=1e-3  # 权重衰减
+    #     )
+
+    #     # 包装 Lookahead 优化器
+    #     optimizer = Lookahead(base_optimizer, k=5, alpha=0.5)
+
+    #     scheduler = optim.lr_scheduler.CosineAnnealingLR(
+    #         optimizer,
+    #         T_max=args.epochs  # Cosine退火周期与总训练 epoch 对应
+    #     )
 
     criterion = nn.CrossEntropyLoss()
 
     print("Training started...")
     train_classifier(train_loader, val_loader, model, classifier, optimizer, scheduler, criterion,
-                     device,epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type,
-                     batch_size=args.batch_size, use_pretrained=args.use_pretrained,dataset_name=args.dataset_name)
+                     device, epochs=args.epochs, save_dir=args.save_dir, model_type=args.model_type,
+                     batch_size=args.batch_size, use_pretrained=args.use_pretrained, dataset_name=args.dataset_name)
 
 
 if __name__ == "__main__":
     main()
 
+# python train_pretrained_classifier.py --model_type ResNet34 --batch_size 256 --epochs 100 --learning_rate 0.0001 --dataset_name cifar10  --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_batch256_epoch696_loss4.7631_20241217-143332.pth
 
 
-# python train_pretrained_classifier.py --model_type ResNet34 --batch_size 32 --epochs 30 --learning_rate 0.1 --dataset_name cifar100  --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth
-
-
-# python train_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --save_dir ./saved_models/classification --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10 --dataset ./data --gpu 0
+# python train_pretrained_classifier.py --model_type ResNet34 --pretrained_model ./saved_models/pretraining/ResNet34/ResNet34_cifar10_feat128_supout_epoch241_batch32.pth --batch_size 32 --epochs 20 --learning_rate 0.001 --dataset_name cifar10
 
 # python main.py --no_pretrained --model_type ResNet34 --dataset_name cifar10 --batch_size 32 --epochs 20 --learning_rate 0.001 --save_dir ./saved_models/classification/non_pretrained

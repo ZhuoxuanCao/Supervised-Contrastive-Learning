@@ -68,21 +68,62 @@ class LARS(Optimizer):
         return loss
 
 
-# 数据加载器
+# # 数据加载器
+# def set_loader(opt):
+#     transform = TwoCropTransform(get_base_transform(opt['input_resolution']))
+#     if opt['dataset_name'] == 'cifar10':
+#         train_dataset = datasets.CIFAR10(root=opt['dataset'], train=True, download=True, transform=transform)
+#     elif opt['dataset_name'] == 'cifar100':
+#         train_dataset = datasets.CIFAR100(root=opt['dataset'], train=True, download=True, transform=transform)
+#     elif opt['dataset_name'] == 'imagenet':
+#         train_dataset = datasets.ImageFolder(root=opt['dataset'], transform=transform)
+#     else:
+#         raise ValueError(f"Unknown dataset: {opt['dataset_name']}")
+
+#     train_loader = DataLoader(train_dataset, batch_size=opt['batch_size'], shuffle=True, num_workers=2,
+#                               pin_memory=False,
+#                               persistent_workers=opt['num_workers'] > 0)
+#     return train_loader
+
+# 动态标准化参数和数据增强
 def set_loader(opt):
-    transform = TwoCropTransform(get_base_transform(opt['input_resolution']))
-    if opt['dataset_name'] == 'cifar10':
-        train_dataset = datasets.CIFAR10(root=opt['dataset'], train=True, download=True, transform=transform)
-    elif opt['dataset_name'] == 'cifar100':
-        train_dataset = datasets.CIFAR100(root=opt['dataset'], train=True, download=True, transform=transform)
-    elif opt['dataset_name'] == 'imagenet':
-        train_dataset = datasets.ImageFolder(root=opt['dataset'], transform=transform)
-    else:
+    """
+    根据配置动态加载数据集并应用数据增强和标准化。
+    Args:
+        opt (dict): 包含数据集名称、路径、输入分辨率等的配置字典。
+    Returns:
+        DataLoader: 训练数据加载器。
+    """
+    # 根据数据集名称动态设置数据增强和标准化
+    transform = TwoCropTransform(get_base_transform(opt['dataset_name'], opt['input_resolution']))
+
+    # 数据集映射
+    dataset_dict = {
+        'cifar10': datasets.CIFAR10,
+        'cifar100': datasets.CIFAR100,
+        'imagenet': datasets.ImageFolder
+    }
+
+    # 获取对应数据集类
+    dataset_class = dataset_dict.get(opt['dataset_name'])
+    if dataset_class is None:
         raise ValueError(f"Unknown dataset: {opt['dataset_name']}")
 
-    train_loader = DataLoader(train_dataset, batch_size=opt['batch_size'], shuffle=True, num_workers=2,
-                              pin_memory=False,
-                              persistent_workers=opt['num_workers'] > 0)
+    # 加载数据集
+    if opt['dataset_name'] in ['cifar10', 'cifar100']:
+        train_dataset = dataset_class(root=opt['dataset'], train=True, download=True, transform=transform)
+    elif opt['dataset_name'] == 'imagenet':
+        train_dataset = dataset_class(root=opt['dataset'], transform=transform)
+
+    # 创建数据加载器
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=opt['batch_size'],
+        shuffle=True,
+        num_workers=opt.get('num_workers', 2),
+        pin_memory=True,
+        persistent_workers=opt.get('num_workers', 0) > 0
+    )
     return train_loader
 
 

@@ -9,12 +9,12 @@ class SupConResNet(nn.Module):
     """
     def __init__(self, base_model, feature_dim=128, dim_in=None):
         """
-        Initialize the SupConResNet model.
-        Args:
-            base_model (nn.Module): Base ResNet model (e.g., ResNet34, ResNet50).
-            feature_dim (int): Output feature dimension of the projection head.
-            dim_in (int): Input feature dimension for the projection head.
-                          If None, it must be provided when using ResNet variants.
+        初始化 SupConResNet 模型。
+        参数:
+            base_model (nn.Module): 基础的 ResNet 模型（如 ResNet34, ResNet50）。
+            feature_dim (int): 投影头的输出特征维度。
+            dim_in (int): 投影头的输入特征维度。
+                          如果为 None，则需要在使用 ResNet 变体时提供
         """
         super(SupConResNet, self).__init__()
         self.encoder = base_model  # Base ResNet backbone
@@ -24,21 +24,19 @@ class SupConResNet(nn.Module):
 
         print(f"Encoder output feature dimension: {dim_in}")  # Debugging line
 
-        # # Projection head (MLP)
-        # self.head = nn.Sequential(
-        #     nn.Linear(dim_in, dim_in),
-        #     nn.GELU(),  # 使用 GELU 激活函数
-        #     nn.Linear(dim_in, dim_in),
-        #     nn.GELU(),  # 增加一层全连接层和 GELU 激活函数
-        #     nn.Linear(dim_in, feature_dim)
-        # )
-
         # Projection head (MLP)
         self.head = nn.Sequential(
             nn.Linear(dim_in, dim_in),
-            nn.ReLU(inplace=True),
+            nn.GELU(),  # 使用 GELU 激活函数
+            nn.Linear(dim_in, dim_in),
+            nn.GELU(),  # 增加一层全连接层和 GELU 激活函数
             nn.Linear(dim_in, feature_dim)
         )
+        # self.head = nn.Sequential(
+        #     nn.Linear(dim_in, dim_in),
+        #     nn.ReLU(inplace=True),
+        #     nn.Linear(dim_in, feature_dim)
+        # )
 
     def forward(self, x):
         """
