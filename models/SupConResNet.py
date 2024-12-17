@@ -24,6 +24,15 @@ class SupConResNet(nn.Module):
 
         print(f"Encoder output feature dimension: {dim_in}")  # Debugging line
 
+        # # Projection head (MLP)
+        # self.head = nn.Sequential(
+        #     nn.Linear(dim_in, dim_in),
+        #     nn.GELU(),  # 使用 GELU 激活函数
+        #     nn.Linear(dim_in, dim_in),
+        #     nn.GELU(),  # 增加一层全连接层和 GELU 激活函数
+        #     nn.Linear(dim_in, feature_dim)
+        # )
+
         # Projection head (MLP)
         self.head = nn.Sequential(
             nn.Linear(dim_in, dim_in),

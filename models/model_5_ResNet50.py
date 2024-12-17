@@ -202,13 +202,14 @@ class ResNet50(nn.Module):
 
         # Bottleneck layers
         self.layer1 = self._make_layer(BottleneckSE, 64, 3, use_se=False, use_gelu=False)
-        self.layer2 = self._make_layer(BottleneckSE, 128, 4, stride=2, use_se=True, use_gelu=False)
-        self.layer3 = self._make_layer(BottleneckSE, 256, 6, stride=2, use_se=True, use_gelu=True)
+        self.layer2 = self._make_layer(BottleneckSE, 128, 4, stride=2, use_se=False, use_gelu=False)
+        self.layer3 = self._make_layer(BottleneckSE, 256, 6, stride=2, use_se=False, use_gelu=True)
         self.layer4 = self._make_layer(BottleneckSE, 512, 3, stride=2, use_se=True, use_gelu=True)
 
         # Average Pooling and Dropout
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.dropout = nn.Dropout(p=0.3)
+        # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.mixed_pooling = MixedPooling()
+        self.dropout = nn.Dropout(p=0.5)
         self.fc = nn.Linear(512 * BottleneckSE.expansion, num_classes)
 
     def _make_layer(self, block, out_channels, blocks, stride=1, use_se=False, use_gelu=False):
