@@ -1,11 +1,11 @@
 
 ## 1 代码结构
 - Contrastive_Learning/：包含与对比学习相关的代码。
- - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
+   - init.py：该文件是简单的初始化文件，将 Contrastive_Learning 文件夹标记为一个 Python 包。通过该文件，项目中其他模块可以导入 Contrastive_Learning 文件夹中的函数、类或配置。
    
- - config_con.py：该文件是监督式对比学习的配置文件，包含对比学习训练过程中的参数设置。
+   - config_con.py：该文件是监督式对比学习的配置文件，包含对比学习训练过程中的参数设置。
    
- - train_con.py：该文件实现了监督式对比学习的训练过程。
+   - train_con.py：该文件实现了监督式对比学习的训练过程。
 
 - data_augmentation/：包含数据增强的相关代码，用于在训练过程中对输入数据进行预处理。
 
