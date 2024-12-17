@@ -50,7 +50,7 @@ def test_model(model_path, device):
 if __name__ == "__main__":
     # 设置设备
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "./saved_models/classification/scratch/ResNet34_cifar10_batch16_valAcc80.52_20241216-234330.pth"
+    model_path = "./saved_models/classification/scratch/ResNet34_cifar10_batch32_valAcc86.98_20241217-013556.pth"
 
     # 测试模型
     test_model(model_path, device)

@@ -5,6 +5,7 @@ from tqdm import tqdm  # 用于显示进度条
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
+from torch_optimizer import Lookahead
 from torchvision.transforms import AutoAugment, AutoAugmentPolicy
 from models import ResNet34, ResNet50, ResNet101, ResNet200
 import os
@@ -190,13 +191,26 @@ def main():
     # Optimizer and scheduler
     # optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9, weight_decay=5e-4)
     # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs)
-    optimizer = optim.AdamW(
+
+    # optimizer = optim.AdamW(
+    #     model.parameters(),
+    #     lr=args.learning_rate,  # 学习率，与 SGD 的默认值可能不同，建议适当减小
+    #     betas=(0.9, 0.999),  # 默认 AdamW 参数
+    #     eps=1e-8,  # 防止数值不稳定
+    #     weight_decay=5e-4  # 权重衰减
+    # )
+
+    # 使用 AdamW 作为基础优化器
+    base_optimizer = optim.AdamW(
         model.parameters(),
         lr=args.learning_rate,  # 学习率，与 SGD 的默认值可能不同，建议适当减小
         betas=(0.9, 0.999),  # 默认 AdamW 参数
         eps=1e-8,  # 防止数值不稳定
         weight_decay=5e-4  # 权重衰减
     )
+
+    # 包装 Lookahead 优化器
+    optimizer = Lookahead(base_optimizer, k=5, alpha=0.5)
 
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer,
@@ -217,4 +231,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python train_scratch_classifier.py --model_type ResNet34 --batch_size 16 --epochs 20 --learning_rate 0.005 --dataset_name cifar10
+# python train_scratch_classifier.py --model_type ResNet50 --batch_size 16 --epochs 15 --learning_rate 0.005 --dataset_name cifar10
