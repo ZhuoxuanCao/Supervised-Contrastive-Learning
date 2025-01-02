@@ -8,10 +8,30 @@
    - train_con.py：该文件实现了监督式对比学习的训练过程。
 
 - data_augmentation/：包含数据增强的相关代码，用于在训练过程中对输入数据进行预处理。
+   - CutMix.py：实现CutMix数据增强。
+   
+   - MixUp.py：实现MixUp数据增强。
+   
+   - data_augmentation_con.py：实现监督对比学习的数据增强逻辑。
+ 
+   - init.py：该文件是简单的初始化文件
 
-- losses/：定义了损失函数，supin和supout。
+- losses/：定义了损失函数相关代码，supin和supout。
+   - SupIn.py：实现SupIn损失函数。
+   
+   - SupOut.py：实现SupOut损失函数。
+   
+   - CrossEntropy.py：实现CrossEntropy损失函数。
 
 - models/：存放用于测试的模型代码，包括不同架构的神经网络模型定义，以及MLP的实现。
+   - ResNet34.py：实现ResNet34网络结构。
+   
+   - ResNet50.py：实现ResNet50网络结构。
+     
+   - 其他神经网络架构
+   
+   - SupConResNet.py：实现MLP多层感知器。
+   - init.py：该文件是简单的初始化文件
 
 - my_logs/：用于存储训练过程中的日志信息，便于跟踪和分析模型的训练情况。
 
